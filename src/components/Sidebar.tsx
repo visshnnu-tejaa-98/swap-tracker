@@ -31,7 +31,7 @@ export default function Sidebar() {
         <div className="nav-label">Overview</div>
         <nav className="nav">
           {NAV.map(({ to, label, icon: Icon, count }) => (
-            <NavLink key={to} to={to} end>
+            <NavLink key={to} to={to} end={to === "/"}>
               <span className="nav-icon">
                 <Icon size={17} strokeWidth={1.9} aria-hidden="true" />
               </span>

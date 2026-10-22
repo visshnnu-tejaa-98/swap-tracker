@@ -11,6 +11,14 @@ echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, Canvas
 
 export type TimeRange = 'today' | 'week' | 'month'
 
+/** A clicked point: one hour / day bucket on one outcome line. */
+export interface ChartSelection {
+  start: number
+  end: number
+  status: TransactionStatus
+  title: string
+}
+
 const IST_OFFSET = 5.5 * 60 * 60 * 1000
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
@@ -52,20 +60,60 @@ function buildBuckets(range: TimeRange) {
     const currentHour = Math.floor((now - start) / HOUR)
     for (const s of SERIES) for (let i = currentHour + 1; i < count; i++) counts[s.status][i] = null
   }
-  return { labels, counts }
+  const title = (i: number) => {
+    const from = start + i * size
+    return range === 'today'
+      ? `Today · ${istLabel(from, dayOptions)}–${istLabel(from + size, dayOptions)}`
+      : istLabel(from, { weekday: 'long', day: 'numeric', month: 'short' })
+  }
+  return { labels, counts, start, size, title }
 }
 
-export default function SwapTimelineChart({ range }: { range: TimeRange }) {
+interface SwapTimelineChartProps {
+  range: TimeRange
+  onPointClick?: (selection: ChartSelection) => void
+}
+
+export default function SwapTimelineChart({ range, onPointClick }: SwapTimelineChartProps) {
   const ref = useRef<HTMLDivElement>(null)
   const chartRef = useRef<echarts.ECharts | null>(null)
-  const { labels, counts } = useMemo(() => buildBuckets(range), [range])
+  const buckets = useMemo(() => buildBuckets(range), [range])
+  const { labels, counts } = buckets
   const { theme } = useTheme()
+
+  // the click handler is bound once; these refs give it the latest values
+  const latest = useRef({ buckets, onPointClick })
+  const hiddenSeries = useRef(new Set<string>())
+  useEffect(() => {
+    latest.current = { buckets, onPointClick }
+  }, [buckets, onPointClick])
 
   useEffect(() => {
     const chart = echarts.init(ref.current!)
     chartRef.current = chart
     const observer = new ResizeObserver(() => chart.resize())
     observer.observe(ref.current!)
+
+    chart.on('legendselectchanged', (e) => {
+      const { selected } = e as { selected: Record<string, boolean> }
+      hiddenSeries.current = new Set(Object.keys(selected).filter((name) => !selected[name]))
+    })
+
+    // clicking anywhere in the plot picks the bucket under the cursor and the visible line nearest to it
+    chart.getZr().on('click', ({ offsetX, offsetY }) => {
+      const { buckets: b, onPointClick: cb } = latest.current
+      if (!cb || !chart.containPixel('grid', [offsetX, offsetY])) return
+      const index = Math.round(chart.convertFromPixel({ xAxisIndex: 0 }, offsetX) as number)
+      const y = chart.convertFromPixel({ yAxisIndex: 0 }, offsetY) as number
+      const candidates = SERIES.filter((s) => !hiddenSeries.current.has(s.name) && (b.counts[s.status][index] ?? 0) > 0)
+      if (candidates.length === 0) return
+      const nearest = candidates.reduce((a, c) =>
+        Math.abs(b.counts[c.status][index]! - y) < Math.abs(b.counts[a.status][index]! - y) ? c : a,
+      )
+      const start = b.start + index * b.size
+      cb({ start, end: start + b.size, status: nearest.status, title: b.title(index) })
+    })
+
     return () => {
       observer.disconnect()
       chart.dispose()
@@ -128,5 +176,5 @@ export default function SwapTimelineChart({ range }: { range: TimeRange }) {
     )
   }, [labels, counts, theme])
 
-  return <div ref={ref} className="chart" />
+  return <div ref={ref} className={`chart${onPointClick ? ' chart-clickable' : ''}`} />
 }

@@ -10,11 +10,14 @@ const index = <T extends { id: string }>(list: T[]) => new Map(list.map((x) => [
 const stationMap = index(stations)
 const batteryMap = index(batteries)
 const userMap = index(users)
+const transactionMap = index(transactions)
 
 export const getStationById = (id: string) => stationMap.get(id)
 export const getBatteryById = (id: string) => batteryMap.get(id)
 export const getUserById = (id: string) => userMap.get(id)
+export const getTransactionById = (id: string) => transactionMap.get(id)
 export const getUserByRfid = (rfid: string) => users.find((u) => u.rfidTag === rfid)
+export const getUserByTransactionId = (txid: string) => users.find((u) => u.id === transactions.find((t) => t.id === txid)?.userId)
 
 export const getBatteriesAtStation = (stationId: string) =>
   batteries.filter((b) => b.location.type === 'station' && b.location.stationId === stationId)
