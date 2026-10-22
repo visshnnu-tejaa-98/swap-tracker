@@ -22,3 +22,6 @@ export const getBatteriesOfUser = (userId: string) =>
   batteries.filter((b) => b.location.type === 'scooter' && b.location.userId === userId)
 export const getTransactionsForUser = (userId: string) => transactions.filter((t) => t.userId === userId)
 export const getTransactionsForStation = (stationId: string) => transactions.filter((t) => t.stationId === stationId)
+
+/** The moment the mock dataset treats as "now" (2026-10-22 13:30 IST) */
+export const MOCK_NOW = new Date('2026-10-22T08:00:00.000Z')
