@@ -1,21 +1,15 @@
-import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeftRight, BatteryFull, Maximize2, PlugZap, Sparkles, Trophy } from 'lucide-react'
 import StatCard from '../components/StatCard'
-import type { TimeRange } from '../components/SwapTimelineChart'
+import SwapChartCard from '../components/SwapChartCard'
+import { useRange } from '../hooks/useRange'
 import { MOCK_NOW, batteries, getBatteryById, stations, transactions } from '../mock-data'
-
-// echarts is large; keep it out of the initial bundle
-const SwapTimelineChart = lazy(() => import('../components/SwapTimelineChart'))
-
-const RANGES: { value: TimeRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'Last week' },
-  { value: 'month', label: 'Last month' },
-]
 
 const vars = (v: Record<string, string | number>) => v as CSSProperties
 
 export default function Dashboard() {
-  const [range, setRange] = useState<TimeRange>('week')
+  const [range] = useRange()
 
   const stats = useMemo(() => {
     const atStations = batteries.filter((b) => b.location.type === 'station').length
@@ -53,6 +47,7 @@ export default function Dashboard() {
         <StatCard
           index={1}
           label="Total batteries"
+          icon={BatteryFull}
           value={stats.batteries}
           accent="var(--color-ink)"
           description={<><strong>{stats.atStations}</strong> at stations · <strong>{stats.inScooters}</strong> in scooters</>}
@@ -60,6 +55,7 @@ export default function Dashboard() {
         <StatCard
           index={2}
           label="Charging stations"
+          icon={PlugZap}
           value={stats.stations}
           accent="var(--color-info)"
           description={<><strong>{stats.onlineStations}</strong> online · {stats.stations - stats.onlineStations} offline / maintenance</>}
@@ -67,6 +63,7 @@ export default function Dashboard() {
         <StatCard
           index={3}
           label="New batteries"
+          icon={Sparkles}
           value={stats.newBatteries}
           accent="var(--color-success)"
           description={<>Under 25% of 1,500 cycles used</>}
@@ -74,6 +71,7 @@ export default function Dashboard() {
         <StatCard
           index={4}
           label="Swap transactions"
+          icon={ArrowLeftRight}
           value={stats.swaps}
           accent="var(--color-primary)"
           description={<><strong>{stats.batteriesSwapped}</strong> batteries swapped · <strong>{stats.successRate}%</strong> success</>}
@@ -81,29 +79,20 @@ export default function Dashboard() {
       </div>
 
       <div className="dashboard-grid">
-        <section className="card animate-in" style={vars({ '--i': 5 })}>
-          <div className="card-header">
-            <div>
-              <h2 className="card-title">Swaps over time</h2>
-              <div className="card-subtitle">{range === 'today' ? 'Hourly' : 'Daily'} swap attempts by outcome (IST)</div>
-            </div>
-            <div className="segmented" role="tablist">
-              {RANGES.map((r) => (
-                <button key={r.value} role="tab" aria-selected={range === r.value} className={range === r.value ? 'active' : ''} onClick={() => setRange(r.value)}>
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Suspense fallback={<div className="chart-skeleton" />}>
-            <SwapTimelineChart range={range} />
-          </Suspense>
-        </section>
+        <SwapChartCard
+          className="animate-in"
+          style={vars({ '--i': 5 })}
+          action={
+            <Link to={`/transactions?range=${range}`} className="icon-button" aria-label="Expand chart" title="Expand chart">
+              <Maximize2 size={16} aria-hidden="true" />
+            </Link>
+          }
+        />
 
         <section className="card animate-in" style={vars({ '--i': 6 })}>
           <div className="card-header">
             <div>
-              <h2 className="card-title">Busiest stations</h2>
+              <h2 className="card-title"><Trophy size={18} aria-hidden="true" />Busiest stations</h2>
               <div className="card-subtitle">By swaps in the last 30 days</div>
             </div>
           </div>

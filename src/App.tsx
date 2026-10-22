@@ -1,12 +1,8 @@
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
-
-const NAV = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/batteries', label: 'Batteries' },
-  { to: '/transactions', label: 'Transactions' },
-  { to: '/users', label: 'Users' },
-]
+import Transactions from './pages/Transactions'
+import ThemeProvider from './theme/ThemeProvider'
 
 function ComingSoon({ title }: { title: string }) {
   return (
@@ -21,33 +17,20 @@ function ComingSoon({ title }: { title: string }) {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <div className="app">
-        <aside className="sidebar">
-          <div className="brand">
-            <div className="brand-mark">Z</div>
-            <div>
-              <div className="brand-name">ZENO</div>
-              <div className="brand-sub">Swap Tracker</div>
-            </div>
-          </div>
-          <nav className="nav">
-            {NAV.map((item) => (
-              <NavLink key={item.to} to={item.to} end>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        </aside>
+        <Sidebar />
         <main className="main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/batteries" element={<ComingSoon title="Batteries" />} />
-            <Route path="/transactions" element={<ComingSoon title="Transactions" />} />
+            <Route path="/transactions" element={<Transactions />} />
             <Route path="/users" element={<ComingSoon title="Users" />} />
           </Routes>
         </main>
       </div>
     </BrowserRouter>
+    </ThemeProvider>
   )
 }

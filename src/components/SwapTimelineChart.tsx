@@ -5,6 +5,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useMemo, useRef } from 'react'
 import { MOCK_NOW, transactions } from '../mock-data'
 import type { TransactionStatus } from '../mock-data'
+import { token, useTheme } from '../theme/context'
 
 echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
@@ -14,18 +15,19 @@ const IST_OFFSET = 5.5 * 60 * 60 * 1000
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 
-const SERIES: { status: TransactionStatus; name: string; color: string }[] = [
-  { status: 'success', name: 'Successful', color: '#1e9e6a' },
-  { status: 'partial', name: 'Partial', color: '#f2a516' },
-  { status: 'failed', name: 'Failed', color: '#fd2e19' },
+// colours come from the theme's design tokens so the chart follows light / dark mode
+const SERIES: { status: TransactionStatus; name: string; colorToken: string }[] = [
+  { status: 'success', name: 'Successful', colorToken: '--color-success' },
+  { status: 'partial', name: 'Partial', colorToken: '--color-charging' },
+  { status: 'failed', name: 'Failed', colorToken: '--color-primary' },
 ]
 
-const istLabel = (ms: number, opts: any) =>
+const istLabel = (ms: number, opts: Intl.DateTimeFormatOptions) =>
   new Date(ms).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', ...opts })
 
-const dayOptions = { hour: '2-digit', minute: '2-digit', hour12: false }
-const weekOptions = { weekday: 'short', day: 'numeric' }
-const monthOptions = { day: 'numeric', month: 'short' }
+const dayOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: false }
+const weekOptions: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric' }
+const monthOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
 
 function buildBuckets(range: TimeRange) {
   const now = MOCK_NOW.getTime()
@@ -57,6 +59,7 @@ export default function SwapTimelineChart({ range }: { range: TimeRange }) {
   const ref = useRef<HTMLDivElement>(null)
   const chartRef = useRef<echarts.ECharts | null>(null)
   const { labels, counts } = useMemo(() => buildBuckets(range), [range])
+  const { theme } = useTheme()
 
   useEffect(() => {
     const chart = echarts.init(ref.current!)
@@ -70,54 +73,60 @@ export default function SwapTimelineChart({ range }: { range: TimeRange }) {
   }, [])
 
   useEffect(() => {
+    const muted = token('--color-ink-muted')
+    const ink = token('--color-ink')
     chartRef.current?.setOption(
       {
-        // animationDuration: 300,
-        // animationDurationUpdate: 300,
-        // animationEasing: 'cubicOut',
-        // animationEasingUpdate: 'cubicInOut',
-        textStyle: { fontFamily: 'Inter, system-ui, sans-serif', color: '#5d7279' },
-        tooltip: { trigger: 'axis', backgroundColor: '#1f3a42', borderWidth: 0, textStyle: { color: '#fff' } },
-        legend: { top: 0, right: 0, icon: 'roundRect', itemWidth: 10, itemHeight: 10, textStyle: { color: '#1f3a42' } },
+        textStyle: { fontFamily: 'Inter, system-ui, sans-serif', color: muted },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: token('--tooltip-bg'),
+          borderColor: token('--color-border'),
+          textStyle: { color: token('--tooltip-ink') },
+        },
+        legend: { top: 0, right: 0, icon: 'roundRect', itemWidth: 10, itemHeight: 10, textStyle: { color: ink } },
         grid: { left: 8, right: 16, top: 40, bottom: 8, containLabel: true },
         xAxis: {
           type: 'category',
           boundaryGap: false,
           data: labels,
-          axisLine: { lineStyle: { color: '#e3e8e9' } },
+          axisLine: { lineStyle: { color: token('--color-border') } },
           axisTick: { show: false },
-          axisLabel: { color: '#5d7279', hideOverlap: true },
+          axisLabel: { color: muted, hideOverlap: true },
         },
         yAxis: {
           type: 'value',
           minInterval: 1,
-          splitLine: { lineStyle: { color: '#eef1f2' } },
-          axisLabel: { color: '#5d7279' },
+          splitLine: { lineStyle: { color: token('--chart-grid') } },
+          axisLabel: { color: muted },
         },
-        series: SERIES.map((s) => ({
-          name: s.name,
-          type: 'line',
-          smooth: true,
-          showSymbol: false,
-          symbolSize: 7,
-          lineStyle: { width: s.status === 'success' ? 3 : 2, color: s.color },
-          itemStyle: { color: s.color },
-          areaStyle:
-            s.status === 'success'
-              ? {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(30, 158, 106, 0.28)' },
-                  { offset: 1, color: 'rgba(30, 158, 106, 0)' },
-                ]),
-              }
-              : undefined,
-          emphasis: { focus: 'series' },
-          data: counts[s.status],
-        })),
+        series: SERIES.map((s) => {
+          const color = token(s.colorToken)
+          return {
+            name: s.name,
+            type: 'line',
+            smooth: true,
+            showSymbol: false,
+            symbolSize: 7,
+            lineStyle: { width: s.status === 'success' ? 3 : 2, color },
+            itemStyle: { color },
+            areaStyle:
+              s.status === 'success'
+                ? {
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: echarts.color.modifyAlpha(color, 0.28) },
+                    { offset: 1, color: echarts.color.modifyAlpha(color, 0) },
+                  ]),
+                }
+                : undefined,
+            emphasis: { focus: 'series' },
+            data: counts[s.status],
+          }
+        }),
       },
       true,
     )
-  }, [labels, counts])
+  }, [labels, counts, theme])
 
-  return <div ref={ref} style={{ width: '100%', height: 340 }} />
+  return <div ref={ref} className="chart" />
 }
