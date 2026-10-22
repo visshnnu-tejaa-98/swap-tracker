@@ -681,3 +681,13 @@ h1, h2, h3 { font-family: var(--font-heading); margin: 0; }
   .toolbar-right, .search { width: 100%; }
   .table-toolbar .segmented { overflow-x: auto; max-width: 100%; }
 }
+
+/* ---------- stations ---------- */
+.door-bar-table { width: 110px; margin-top: 0; }
+.door-bar-table i { animation: none; }
+a.door { text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast); }
+a.door:hover { transform: translateY(-1px); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 45%, transparent); }
+a.door:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+.door-number { font-size: 12px; font-weight: 700; line-height: 1; }
+.door-charge { font-size: 10px; font-weight: 500; opacity: 0.85; line-height: 1; }
+.panel .door-grid .door { aspect-ratio: 1.3; }

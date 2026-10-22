@@ -1,4 +1,4 @@
-import type { BatteryCondition, BatteryStatus, FailureReason, TransactionStatus, TransactionStepName } from '../mock-data'
+import type { BatteryCondition, BatteryStatus, FailureReason, StationStatus, TransactionStatus, TransactionStepName } from '../mock-data'
 
 const IST = 'Asia/Kolkata'
 
@@ -32,6 +32,12 @@ export const BATTERY_CONDITION: Record<BatteryCondition, { label: string; tone: 
   new: { label: 'New', tone: 'success' },
   moderately_used: { label: 'Moderately used', tone: 'info' },
   old: { label: 'Old', tone: 'warning' },
+}
+
+export const STATION_STATUS: Record<StationStatus, { label: string; tone: Tone; color: string }> = {
+  online: { label: 'Online', tone: 'success', color: 'var(--color-success)' },
+  offline: { label: 'Offline', tone: 'danger', color: 'var(--color-danger)' },
+  maintenance: { label: 'Maintenance', tone: 'warning', color: 'var(--color-charging)' },
 }
 
 export const STEP_LABEL: Record<TransactionStepName, string> = {

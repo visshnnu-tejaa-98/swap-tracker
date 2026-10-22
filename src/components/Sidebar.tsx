@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { ArrowLeftRight, BatteryCharging, LayoutDashboard, Users, Zap, type LucideIcon } from 'lucide-react'
-import { batteries, stations, transactions, users } from '../mock-data'
+import { ArrowLeftRight, BatteryCharging, LayoutDashboard, PlugZap, Zap, type LucideIcon } from 'lucide-react'
+import { batteries, stations, transactions } from '../mock-data'
 import ThemeToggle from './ThemeToggle'
 
 const NAV: { to: string; label: string; icon: LucideIcon; count?: number }[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/batteries', label: 'Batteries', icon: BatteryCharging, count: batteries.length },
   { to: '/transactions', label: 'Transactions', icon: ArrowLeftRight, count: transactions.length },
-  { to: '/users', label: 'Users', icon: Users, count: users.length },
+  { to: '/stations', label: 'Stations', icon: PlugZap, count: stations.length },
 ]
 
 const online = stations.filter((s) => s.status === 'online').length

@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, Search } from 'lucide-react'
 import Badge from '../components/Badge'
 import BatteryPanel from '../components/BatteryPanel'
+import TablePager from '../components/TablePager'
 import { batteries, getBatteryById, getStationById, getUserById, type Battery, type BatteryCondition, type BatteryStatus } from '../mock-data'
 import { BATTERY_CONDITION, BATTERY_STATUS, formatDateTime } from '../utils/format'
 
@@ -161,20 +162,7 @@ export default function Batteries() {
           </table>
         </div>
 
-        <div className="table-footer">
-          <span className="muted">
-            {rows.length === 0 ? 0 : current * PAGE_SIZE + 1}–{Math.min(rows.length, (current + 1) * PAGE_SIZE)} of {rows.length}
-          </span>
-          <div className="pager">
-            <button className="icon-button" disabled={current === 0} onClick={() => setPage(current - 1)} aria-label="Previous page">
-              <ChevronLeft size={16} aria-hidden="true" />
-            </button>
-            <span className="muted">Page {current + 1} of {pageCount}</span>
-            <button className="icon-button" disabled={current >= pageCount - 1} onClick={() => setPage(current + 1)} aria-label="Next page">
-              <ChevronRight size={16} aria-hidden="true" />
-            </button>
-          </div>
-        </div>
+        <TablePager page={current} pageSize={PAGE_SIZE} total={rows.length} onPageChange={setPage} />
       </section>
 
       <BatteryPanel battery={selected} onClose={closePanel} />
