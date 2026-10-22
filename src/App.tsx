@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
+import Batteries from './pages/Batteries'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import TransactionDetails from './pages/TransactionDetails'
@@ -25,7 +26,7 @@ export default function App() {
         <main className="main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/batteries" element={<ComingSoon title="Batteries" />} />
+            <Route path="/batteries" element={<Batteries />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/transactions/details/:id" element={<TransactionDetails />} />
             <Route path="/users" element={<ComingSoon title="Users" />} />
